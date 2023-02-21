@@ -2,6 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { words } from "./../../data/words.json";
 
 type Data = string[];
+type Options = {
+  removeCharacters: boolean;
+  changeCharacters: boolean;
+};
 
 const filteredWords: string[] = words.filter((w) => w.length < 8);
 
@@ -11,7 +15,7 @@ function getRandomIntInclusive(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
 }
 
-const alterWord = (word: string) => {
+const alterWord = (word: string, options: Options) => {
   const times = getRandomIntInclusive(1, 4);
 
   let altered = word;
@@ -28,11 +32,19 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  const { query } = req;
+
+  const options: Options = {
+    removeCharacters: query.removeCharacters === "true",
+    changeCharacters: query.changeCharacters === "true",
+  };
+
   const count = 500;
   const results = [];
   for (let i = 0; i < count; i++) {
     const result = alterWord(
-      filteredWords[getRandomIntInclusive(0, filteredWords.length - 1)]
+      filteredWords[getRandomIntInclusive(0, filteredWords.length - 1)],
+      options
     );
 
     if (!words.includes(result)) {
