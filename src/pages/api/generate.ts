@@ -1,32 +1,11 @@
+import { alterWord } from "@/alteration/alterWord";
+import { getRandomIntInclusive } from "@/alteration/util";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { words } from "./../../data/words.json";
+import * as wordData from "./../../data/words.json";
+
+const { words } = wordData;
 
 type Data = string[];
-type Options = {
-  removeCharacters: boolean;
-  changeCharacters: boolean;
-};
-
-const filteredWords: string[] = words.filter((w) => w.length < 8);
-
-function getRandomIntInclusive(min: number, max: number) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
-}
-
-const alterWord = (word: string, options: Options) => {
-  const times = getRandomIntInclusive(1, 4);
-
-  let altered = word;
-
-  for (let i = 0; i < times; i++) {
-    const pos = getRandomIntInclusive(1, word.length - 1);
-    altered = word.slice(0, pos - 1) + word.slice(pos);
-  }
-
-  return `${altered}`;
-};
 
 export default function handler(
   req: NextApiRequest,
@@ -34,20 +13,42 @@ export default function handler(
 ) {
   const { query } = req;
 
-  const options: Options = {
+  const options = {
     removeCharacters: query.removeCharacters === "true",
     changeCharacters: query.changeCharacters === "true",
+    swapForNumber: query.swapForNumber === "true",
+    maxIterations: +(query.maxIterations !== undefined
+      ? query.maxIterations
+      : 3),
+    addDash: query.addDash === "true",
   };
 
-  const count = 500;
+  const maxWordLength = +(query.maxWordLength || 10);
+  const count = +(query.count || 100);
+  const secondWord = query.secondWord === "true";
   const results = [];
-  for (let i = 0; i < count; i++) {
-    const result = alterWord(
-      filteredWords[getRandomIntInclusive(0, filteredWords.length - 1)],
-      options
-    );
 
-    if (!words.includes(result)) {
+  const filteredWords: string[] = words.filter((w) => w.length < maxWordLength);
+
+  for (let i = 0; i < count; i++) {
+    const result =
+      secondWord && Math.random() > 0.8
+        ? [
+            `${alterWord(
+              filteredWords[getRandomIntInclusive(0, filteredWords.length - 1)],
+              options
+            )}`,
+            `${alterWord(
+              filteredWords[getRandomIntInclusive(0, filteredWords.length - 1)],
+              options
+            )}`,
+          ].join(Math.random() > 0.9 ? "-" : " ")
+        : `${alterWord(
+            filteredWords[getRandomIntInclusive(0, filteredWords.length - 1)],
+            options
+          )}`;
+
+    if (result && !words.includes(result)) {
       results.push(result);
     }
   }
