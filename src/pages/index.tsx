@@ -1,3 +1,4 @@
+import { Werds } from "@/components/Werds";
 import Head from "next/head";
 
 export default function Home() {
@@ -15,9 +16,8 @@ export default function Home() {
         ></link>
       </Head>
       <main>
-        <div className="container">
-          <p>this is a test?</p>
-          <button className="btn btn-primary">click me</button>
+        <div className="container py-4">
+          <Werds />
         </div>
       </main>
     </>
